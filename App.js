@@ -1,99 +1,36 @@
-import 'react-native-url-polyfill/auto';
-import React, {useMemo, useState} from 'react';
-import {SafeAreaView, View, Text, Pressable, ScrollView, TextInput, StyleSheet} from 'react-native';
-import {StatusBar} from 'expo-status-bar';
-import {Ionicons} from '@expo/vector-icons';
+import "react-native-url-polyfill/auto";
+import React,{useEffect,useState} from "react";
+import {Alert,FlatList,Image,Pressable,SafeAreaView,StyleSheet,Text,TextInput,View} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import {createClient} from "@supabase/supabase-js";
+import {Ionicons} from "@expo/vector-icons";
 
-const samplePosts = [
-  {id:1, user:'NOVA Creator', text:'به دنیای NOVA خوش آمدید 🌟', likes:1240, comments:86},
-  {id:2, user:'Global Star', text:'Create. Share. Connect. 🚀', likes:892, comments:41},
-  {id:3, user:'NOVA Live', text:'پخش زنده و ارتباط با دنیا در یک جا.', likes:531, comments:29},
-];
+const url=process.env.EXPO_PUBLIC_SUPABASE_URL||"";
+const key=process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY||"";
+const supabase=url&&key?createClient(url,key):null;
+const demo=[{id:"d1",username:"NOVA",text:"Welcome to NOVA — a new world for communication and creativity.",likes:128,comments:12},{id:"d2",username:"Creator",text:"Your ideas. Your community. Your world.",likes:76,comments:8}];
 
-export default function App() {
-  const [tab, setTab] = useState('home');
-  const [liked, setLiked] = useState({});
-  const [query, setQuery] = useState('');
-
-  const title = useMemo(() => ({
-    home:'NOVA', hot:'داغ‌ترین‌ها', create:'ایجاد', live:'LIVE', profile:'پروفایل'
-  }[tab] || 'NOVA'), [tab]);
-
-  const nav = [
-    ['home','home','خانه'], ['hot','flame','داغ'], ['create','add-circle','ایجاد'],
-    ['live','radio','LIVE'], ['profile','person','پروفایل']
-  ];
-
-  return (
-    <SafeAreaView style={s.safe}>
-      <StatusBar style="light" />
-      <View style={s.header}>
-        <Text style={s.logo}>{title}</Text>
-        <View style={s.headerBtns}>
-          <Pressable onPress={()=>setQuery('')} style={s.iconBtn}><Ionicons name="search" size={22} color="#fff"/></Pressable>
-          <Pressable style={s.iconBtn}><Ionicons name="notifications-outline" size={22} color="#fff"/></Pressable>
-        </View>
-      </View>
-
-      {tab === 'home' && <ScrollView contentContainerStyle={s.feed}>
-        <View style={s.searchBox}>
-          <Ionicons name="search" size={18} color="#aaa"/>
-          <TextInput value={query} onChangeText={setQuery} placeholder="جستجو در NOVA..." placeholderTextColor="#888" style={s.searchInput}/>
-        </View>
-        {samplePosts.filter(p=>!query || p.text.toLowerCase().includes(query.toLowerCase())).map(p=>(
-          <View key={p.id} style={s.card}>
-            <View style={s.userRow}>
-              <View style={s.avatar}><Text style={s.avatarText}>{p.user[0]}</Text></View>
-              <View><Text style={s.user}>{p.user}</Text><Text style={s.muted}>همین حالا</Text></View>
-            </View>
-            <View style={s.videoBox}><Ionicons name="play-circle" size={60} color="#fff"/><Text style={s.videoLabel}>NOVA VIDEO</Text></View>
-            <Text style={s.postText}>{p.text}</Text>
-            <View style={s.actions}>
-              <Pressable onPress={()=>setLiked({...liked,[p.id]:!liked[p.id]})} style={s.action}>
-                <Ionicons name={liked[p.id]?'heart':'heart-outline'} size={25} color={liked[p.id]?'#ff3b68':'#fff'}/>
-                <Text style={s.actionText}>{p.likes+(liked[p.id]?1:0)}</Text>
-              </Pressable>
-              <Pressable style={s.action}><Ionicons name="chatbubble-outline" size={23} color="#fff"/><Text style={s.actionText}>{p.comments}</Text></Pressable>
-              <Pressable style={s.action}><Ionicons name="share-social-outline" size={23} color="#fff"/><Text style={s.actionText}>اشتراک</Text></Pressable>
-            </View>
-          </View>
-        ))}
-      </ScrollView>}
-
-      {tab === 'hot' && <ScrollView contentContainerStyle={s.page}><Text style={s.h1}>🔥 داغ‌ترین محتوا</Text><Text style={s.body}>موضوعات محبوب، ویدیوهای پرطرفدار و سازندگان برتر در این بخش قرار می‌گیرند.</Text></ScrollView>}
-      {tab === 'create' && <ScrollView contentContainerStyle={s.page}>
-        <Text style={s.h1}>ایجاد محتوا</Text>
-        {[
-          ['videocam','ویدیوی جدید'],['image','عکس و AI Photo Editor'],['musical-notes','Video Editor + Effects'],['happy','استیکرهای متحرک'],['text','پست متنی']
-        ].map(([ic,t])=><Pressable key={t} style={s.bigBtn}><Ionicons name={ic} size={26} color="#fff"/><Text style={s.bigBtnText}>{t}</Text></Pressable>)}
-      </ScrollView>}
-      {tab === 'live' && <ScrollView contentContainerStyle={s.page}>
-        <Text style={s.h1}>🔴 NOVA LIVE</Text><Text style={s.body}>این صفحه برای پخش زنده واقعی آماده شده است؛ اتصال به سرویس استریم و کلیدهای آن باید در مرحله انتشار فعال شود.</Text>
-        <Pressable style={s.liveBtn}><Ionicons name="radio" size={24} color="#fff"/><Text style={s.bigBtnText}>شروع LIVE</Text></Pressable>
-        <Text style={s.muted}>امکانات هدف: دوربین، میکروفون، مهمان، کامنت، هدیه، تعداد بیننده و درآمد.</Text>
-      </ScrollView>}
-      {tab === 'profile' && <ScrollView contentContainerStyle={s.page}>
-        <View style={s.profileTop}><View style={s.profileAvatar}><Ionicons name="person" size={44} color="#fff"/></View><Text style={s.h1}>پروفایل NOVA</Text></View>
-        {['دنبال‌شوندگان','پیام‌ها','اعلان‌ها','کیف پول و درآمد','تنظیمات و زبان'].map(x=><Pressable key={x} style={s.row}><Text style={s.body}>{x}</Text><Ionicons name="chevron-forward" size={20} color="#aaa"/></Pressable>)}
-      </ScrollView>}
-
-      <View style={s.nav}>{nav.map(([id,ic,lab])=><Pressable key={id} onPress={()=>setTab(id)} style={s.navItem}>
-        <Ionicons name={ic} size={25} color={tab===id?'#b7ff31':'#aaa'}/><Text style={[s.navText,tab===id&&s.active]}>{lab}</Text>
-      </Pressable>)}</View>
-    </SafeAreaView>
-  );
+export default function App(){
+ const[session,setSession]=useState(null),[screen,setScreen]=useState("home"),[posts,setPosts]=useState(demo);
+ const[email,setEmail]=useState(""),[password,setPassword]=useState(""),[mode,setMode]=useState("login"),[text,setText]=useState(""),[q,setQ]=useState(""),[liked,setLiked]=useState({});
+ useEffect(()=>{if(!supabase)return;supabase.auth.getSession().then(({data})=>setSession(data.session));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>subscription.unsubscribe()},[]);
+ useEffect(()=>{if(session)load()},[session]);
+ async function load(){if(!supabase)return;const{data}=await supabase.from("posts").select("*").order("created_at",{ascending:false}).limit(50);if(data)setPosts(data)}
+ async function auth(){if(!supabase){Alert.alert("NOVA","Supabase credentials are not connected yet.");return}if(!email||!password)return Alert.alert("NOVA","Email and password are required.");const r=mode==="login"?await supabase.auth.signInWithPassword({email,password}):await supabase.auth.signUp({email,password});if(r.error)Alert.alert("NOVA",r.error.message);else if(mode==="signup")Alert.alert("NOVA","Account created. Check your email if confirmation is enabled.")}
+ async function publish(){if(!text.trim())return;if(supabase&&session){const r=await supabase.from("posts").insert({user_id:session.user.id,text:text.trim()});if(r.error)return Alert.alert("NOVA",r.error.message);load()}else setPosts([{id:String(Date.now()),username:"You",text:text.trim(),likes:0,comments:0},...posts]);setText("");setScreen("home")}
+ async function pick(){const p=await ImagePicker.requestMediaLibraryPermissionsAsync();if(!p.granted)return;const r=await ImagePicker.launchImageLibraryAsync({mediaTypes:["images"],quality:.8});if(!r.canceled)setText("📷 "+r.assets[0].uri)}
+ async function like(p){setLiked({...liked,[p.id]:!liked[p.id]});if(supabase&&session&&!String(p.id).startsWith("d")){if(liked[p.id])await supabase.from("likes").delete().eq("post_id",p.id).eq("user_id",session.user.id);else await supabase.from("likes").insert({post_id:p.id,user_id:session.user.id})}}
+ if(!session)return <Auth email={email} setEmail={setEmail} password={password} setPassword={setPassword} mode={mode} setMode={setMode} submit={auth}/>;
+ const data=posts.filter(p=>(p.text||"").toLowerCase().includes(q.toLowerCase()));
+ return <SafeAreaView style={s.root}>
+  <View style={s.header}><Text style={s.logo}>NOVA</Text><Pressable onPress={()=>setScreen("search")}><Ionicons name="search" size={24} color="#fff"/></Pressable></View>
+  {screen==="search"&&<TextInput value={q} onChangeText={setQ} placeholder="Search NOVA..." placeholderTextColor="#777" style={s.input}/>}
+  {screen==="create"&&<View style={s.pad}><Text style={s.title}>Create post</Text><TextInput multiline value={text} onChangeText={setText} placeholder="What's new?" placeholderTextColor="#777" style={s.big}/><View style={s.row}><Pressable onPress={pick} style={s.btn}><Text style={s.bt}>Photo</Text></Pressable><Pressable onPress={publish} style={s.primary}><Text style={s.dark}>Publish</Text></Pressable></View></View>}
+  {screen==="profile"?<View style={s.center}><Text style={s.title}>NOVA Profile</Text><Text style={s.muted}>{session.user.email}</Text><Pressable onPress={()=>supabase?.auth.signOut()} style={s.primary}><Text style={s.dark}>Log out</Text></Pressable></View>:screen==="live"?<View style={s.center}><Ionicons name="radio" size={60} color="#fff"/><Text style={s.title}>NOVA LIVE</Text><Text style={s.muted}>Real streaming is the next integration phase.</Text></View>:<FlatList data={data} keyExtractor={p=>String(p.id)} contentContainerStyle={{padding:12,paddingBottom:90}} renderItem={({item})=><Post p={item} liked={!!liked[item.id]} like={()=>like(item)}/>}/>}
+  <View style={s.nav}><Nav i="home" t="Home" on={()=>setScreen("home")}/><Nav i="search" t="Search" on={()=>setScreen("search")}/><Nav i="add-circle" t="Create" on={()=>setScreen("create")}/><Nav i="radio" t="LIVE" on={()=>setScreen("live")}/><Nav i="person" t="Profile" on={()=>setScreen("profile")}/></View>
+ </SafeAreaView>
 }
-
-const s=StyleSheet.create({
-  safe:{flex:1,backgroundColor:'#080808'}, header:{height:62,paddingHorizontal:16,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:1,borderBottomColor:'#191919'},
-  logo:{fontSize:28,fontWeight:'900',color:'#fff'}, headerBtns:{flexDirection:'row',gap:12},iconBtn:{padding:8},
-  feed:{padding:12,paddingBottom:100}, searchBox:{height:44,borderRadius:22,backgroundColor:'#171717',flexDirection:'row',alignItems:'center',paddingHorizontal:14,marginBottom:12},
-  searchInput:{flex:1,color:'#fff',marginLeft:8},card:{backgroundColor:'#121212',borderRadius:18,padding:12,marginBottom:14,borderWidth:1,borderColor:'#202020'},
-  userRow:{flexDirection:'row',alignItems:'center',gap:10},avatar:{width:42,height:42,borderRadius:21,backgroundColor:'#b7ff31',alignItems:'center',justifyContent:'center'},avatarText:{fontSize:20,fontWeight:'900',color:'#111'},
-  user:{color:'#fff',fontWeight:'800'},muted:{color:'#777',fontSize:12,marginTop:3},videoBox:{height:360,borderRadius:15,backgroundColor:'#252525',marginTop:12,alignItems:'center',justifyContent:'center'},videoLabel:{color:'#777',marginTop:8,fontWeight:'700'},
-  postText:{color:'#fff',fontSize:16,lineHeight:24,marginTop:10},actions:{flexDirection:'row',alignItems:'center',gap:24,marginTop:12},action:{flexDirection:'row',alignItems:'center',gap:6},actionText:{color:'#ddd'},
-  page:{padding:20,paddingBottom:110},h1:{color:'#fff',fontSize:25,fontWeight:'900',marginBottom:14},body:{color:'#ddd',fontSize:16,lineHeight:25,marginBottom:16},
-  bigBtn:{height:62,borderRadius:16,backgroundColor:'#171717',borderWidth:1,borderColor:'#292929',marginBottom:12,paddingHorizontal:18,flexDirection:'row',alignItems:'center',gap:15},bigBtnText:{color:'#fff',fontSize:16,fontWeight:'800'},liveBtn:{height:62,borderRadius:16,backgroundColor:'#d62d50',alignItems:'center',justifyContent:'center',flexDirection:'row',gap:10,marginVertical:15},
-  profileTop:{alignItems:'center',marginBottom:25},profileAvatar:{width:100,height:100,borderRadius:50,backgroundColor:'#252525',alignItems:'center',justifyContent:'center',marginBottom:12},row:{height:58,borderBottomWidth:1,borderBottomColor:'#202020',flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
-  nav:{position:'absolute',bottom:0,left:0,right:0,height:72,backgroundColor:'#101010',borderTopWidth:1,borderTopColor:'#222',flexDirection:'row',justifyContent:'space-around',alignItems:'center'},navItem:{alignItems:'center',minWidth:60},navText:{color:'#aaa',fontSize:11,marginTop:2},active:{color:'#b7ff31',fontWeight:'800'}
-});
+function Auth({email,setEmail,password,setPassword,mode,setMode,submit}){return <SafeAreaView style={s.root}><View style={s.auth}><Text style={s.hero}>NOVA</Text><Text style={s.muted}>A new world for communication</Text><TextInput autoCapitalize="none" keyboardType="email-address" value={email} onChangeText={setEmail} placeholder="Email" placeholderTextColor="#777" style={s.input}/><TextInput secureTextEntry value={password} onChangeText={setPassword} placeholder="Password" placeholderTextColor="#777" style={s.input}/><Pressable onPress={submit} style={s.primary}><Text style={s.dark}>{mode==="login"?"Log in":"Create account"}</Text></Pressable><Pressable onPress={()=>setMode(mode==="login"?"signup":"login")}><Text style={s.link}>{mode==="login"?"Create a new account":"I already have an account"}</Text></Pressable></View></SafeAreaView>}
+function Post({p,liked,like}){return <View style={s.card}><Text style={s.user}>{p.username||"NOVA"}</Text><Text style={s.post}>{p.text}</Text><View style={s.row}><Pressable onPress={like}><Ionicons name={liked?"heart":"heart-outline"} size={23} color="#fff"/></Pressable><Text style={s.muted}>{(p.likes||0)+(liked?1:0)} likes</Text><Ionicons name="chatbubble-outline" size={21} color="#fff"/><Text style={s.muted}>{p.comments||0}</Text><Ionicons name="share-social-outline" size={21} color="#fff"/></View></View>}
+function Nav({i,t,on}){return <Pressable onPress={on} style={s.navItem}><Ionicons name={i} size={22} color="#fff"/><Text style={s.muted}>{t}</Text></Pressable>}
+const s=StyleSheet.create({root:{flex:1,backgroundColor:"#09090b"},header:{height:58,flexDirection:"row",alignItems:"center",justifyContent:"space-between",paddingHorizontal:18,borderBottomWidth:1,borderBottomColor:"#222"},logo:{color:"#fff",fontSize:27,fontWeight:"900",letterSpacing:2},auth:{flex:1,justifyContent:"center",padding:24},hero:{color:"#fff",fontSize:56,fontWeight:"900",textAlign:"center",marginBottom:6},muted:{color:"#777",fontSize:12},input:{backgroundColor:"#15151a",color:"#fff",borderWidth:1,borderColor:"#292930",borderRadius:12,padding:14,margin:12},big:{minHeight:130,backgroundColor:"#15151a",color:"#fff",padding:14,borderRadius:12,textAlignVertical:"top"},pad:{padding:14},title:{color:"#fff",fontSize:22,fontWeight:"800",marginBottom:12},row:{flexDirection:"row",alignItems:"center",gap:12,marginTop:12},btn:{borderWidth:1,borderColor:"#333",padding:12,borderRadius:10},bt:{color:"#fff",fontWeight:"700"},primary:{backgroundColor:"#fff",padding:14,borderRadius:12,alignItems:"center",marginTop:10},dark:{color:"#09090b",fontWeight:"800"},link:{color:"#fff",textAlign:"center",marginTop:18},card:{backgroundColor:"#111116",borderRadius:16,padding:14,marginBottom:12,borderWidth:1,borderColor:"#202027"},user:{color:"#fff",fontWeight:"800"},post:{color:"#eee",fontSize:16,lineHeight:23,marginTop:12},center:{flex:1,alignItems:"center",justifyContent:"center",padding:25},nav:{position:"absolute",bottom:0,left:0,right:0,height:70,backgroundColor:"#0e0e12",borderTopWidth:1,borderTopColor:"#222",flexDirection:"row",justifyContent:"space-around",alignItems:"center"},navItem:{alignItems:"center",gap:3}});
